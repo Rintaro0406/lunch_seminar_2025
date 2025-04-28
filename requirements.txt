@@ -1,0 +1,8 @@
+streamlit
+cython
+ipykernel
+healpy
+matplotlib
+numpy
+scipy
+jax
