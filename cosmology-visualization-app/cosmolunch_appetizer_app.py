@@ -30,11 +30,10 @@ st.sidebar.header("Cosmological Parameters")
 st.sidebar.markdown("Fit weird curves by hand")
 h = st.sidebar.slider(r"$h$ Hubble Parameter", 0.5, 0.9, 0.6736, step=0.001)
 Omega_m = st.sidebar.slider(r"$\Omega_m$ Matter Density", 0.1, 0.5, 0.315, step=0.001)
-Omega_b = st.sidebar.slider(r"$\Omega_b$ Baryon Density", 0.01, 0.1, 0.0493, step=0.0001)
+Omega_b = st.sidebar.slider(r"$\Omega_b$ Baryon Density", 0.01, 0.1, 0.049, step=0.001)
 Omega_r = st.sidebar.slider(r"$\Omega_r$ Radiation Density", 0.0, 0.0002, 9.2e-5, step=1e-6, format="%.6f")
 sigma8 = st.sidebar.slider(r"$\sigma_8$ Amplitude of Matter Fluctuations", 0.5, 1.2, 0.811, step=0.001)
 n_s = st.sidebar.slider(r"$n_s$ Spectral Index", 0.9, 1.1, 0.9649, step=0.001)
-halofit = st.sidebar.checkbox("Use Halofit for Non-linear Power Spectrum", value=True)
 
 with left_col:
     
@@ -75,8 +74,7 @@ with right_col:
       Current setting: **{sigma8:.2f}** (adjustable between 0.5 and 1.2).  
     - **Spectral Index (ns)**: The legendary parameter which determines the tilt of the primordial power spectrum. This is like the secret ingredient in your grandpa [👨🏾‍🌾](https://link.springer.com/article/10.1140/epjc/s10052-013-2486-7) recipe 🍜.
       Current setting: **{n_s:.2f}** (adjustable between 0.9 and 1.1).  
-    - **[Halofit](https://arxiv.org/abs/1208.2701)**: A special non-linear power spectrum enhancer. Add this for extra complexity in your cosmic dish like a pinch of maggi [🧋](https://www.amazon.co.uk/s?srs=16256131031).
-      Current setting: **{halofit}** (toggle on or off).""")
+    """)
 
 
 
@@ -103,11 +101,9 @@ common_settings = {
     'P_k_max_1/Mpc': 10.0,
     'l_max_scalars': 2500,
     'tau_reio': 0.054,
-    'non linear': 'halofit' if halofit else 'linear', 
 }
 
-if halofit:
-    common_settings['non linear'] = 'halofit'
+
 cosmo.set(common_settings)
 cosmo.compute()
 
@@ -305,13 +301,23 @@ $$a(t) \propto e^{H t}$$""")
     ax.legend(fontsize=12)
     ax.grid(which='both', linestyle='--', alpha=0.5)
     st.pyplot(fig)
-
-    st.header("Transfer Function")
-    st.header("Growth Factor")
+    
 
 # cmb
 with tab2:
-    st.header("CMB Angular Power Spectrum with Contributions")
+    st.header("Simulated CMB Angular Power Spectrum")
+    st.markdown("""
+    ### This  to Figure 1.10 in [Modern Cosmology](https://www.amazon.co.uk/Modern-Cosmology-Scott-Dodelson/dp/0128159480).
+    This plot shows the CMB angular power spectrum, allowing you to compare your chosen cosmological parameters with [Planck data](https://arxiv.org/abs/1807.06209) and various contributions to the spectrum.
+
+    - **[CLASS](http://class-code.net/) Prediction**: The theoretical prediction for the CMB angular power spectrum based on the cosmological parameters you selected.
+    - **[Planck 2018 TT Data](https://pla.esac.esa.int/pla/#home)**: Observational data from the Planck 2018 mission, which provides measurements of the CMB temperature anisotropies.
+    - **Contributions**: Individual contributions to the power spectrum, including:
+      - **TSW**: Sachs-Wolfe effect. This is the main contribution to the CMB temperature anisotropies.
+      - **eISW**: Early Integrated Sachs-Wolfe effect. This is the contribution from the early universe.
+      - **lISW**: Late Integrated Sachs-Wolfe effect. This is the contribution from the late universe.
+      - **Doppler**: Doppler effect. This is the contribution from the motion of the CMB photons.
+    """)
     # Get C_l^TT from CLASS (in [μK^2])
     lmax = 2500
     cl = cosmo.raw_cl(lmax)
@@ -387,13 +393,26 @@ with tab2:
     st.pyplot(fig)
 
     st.header("CMB Temperature Anisotropies")
+    st.markdown("""
+    ### Simulated CMB Temperature Anisotropies
+    This section visualizes the simulated CMB temperature anisotropies using the angular power spectrum \( C_\ell^{TT} \) computed by [CLASS](http://class-code.net/). The map is generated using the [Healpy](https://healpy.readthedocs.io/en/latest/) library.
+
+    - **Resolution**: You can adjust the Healpix resolution (\( n_{\text{side}} \)) to control the level of detail in the map.
+    - **Mask Application**: Optionally, apply the Planck 2018 UT78 mask to exclude regions of the sky with high foreground contamination. 
+    - **[Planck 2018 UT78 Mask](https://pla.esac.esa.int/pla/#home)**: This mask is used to exclude regions of the sky with high foreground contamination. The mask is applied to the CMB map, but not to the power spectrum.
+    - **CMB Map**: The simulated CMB map is displayed in a Mollweide projection, with the color scale representing the temperature anisotropies in microkelvins (μK).
+    """)
     # Slider for Healpix resolution
     nside = st.select_slider("Healpix Resolution (nside)", options=[32, 64, 128, 256, 512, 1024], value=1024)
     # Generate a simulated CMB map using the CLASS C_l^TT
     cmb_map = hp.synfast(cl_tt, nside=nside, lmax=lmax, new=True, verbose=False)
 
     # Button to toggle mask application
+    st.markdown("""
+                ‼️ The mask is only applied to the CMB map, not the power spectrum.
+    """)
     apply_mask = st.checkbox("Apply Planck 2018 UT78 Mask", value=False)
+    
 
     if apply_mask:
       # === Load Planck 2018 UT78 Mask ===
@@ -422,6 +441,16 @@ with tab2:
     st.pyplot(fig)
 
     st.header("CMB Polarization Power Spectrum")
+    st.markdown(r"""
+    ### This plot corresponds to Figure 10.11 in [Modern Cosmology](https://www.amazon.co.uk/Modern-Cosmology-Scott-Dodelson/dp/0128159480).
+    This plot shows the CMB polarization power spectrum, including both E-mode and B-mode polarization. The scalar-to-tensor ratio \( r \) is adjustable, allowing you to explore the impact of primordial gravitational waves on the B-mode spectrum.
+    The tensor-to-scalar ratio $r$is a measure of the amplitude of tensor perturbations (gravitational waves) relative to scalar perturbations (density fluctuations). A higher \( r \) value indicates a larger contribution from gravitational waves to the CMB polarization.
+    If it would be constrained by the CMB data, it would be a direct evidence of inflation. The basic description of the inflationary model is the descrtibed in [Physical Foundations of Cosmology](https://www.amazon.co.uk/Physical-Foundations-Cosmology-Viatcheslav-Mukhanov/dp/0521563984) by Viatcheslav Mukhanov.
+    - **E-mode Polarization**: Generated by scalar perturbations, primarily from density fluctuations.
+    - **B-mode Polarization**: Generated by tensor perturbations (primordial gravitational waves) and lensing effects.
+    - **Lensing Contribution**: The lensing of E-modes into B-modes, which dominates at small angular scales.
+    - **Tensor Contribution**: The direct contribution of primordial gravitational waves to the B-mode spectrum, which dominates at large angular scales.
+    """)
     # Slider for scalar-to-tensor ratio r
     r = st.slider("Scalar-to-Tensor Ratio (r)", 0.0, 1.0, 0.1, step=0.01)
 
@@ -439,7 +468,7 @@ with tab2:
     M_t = Class()
     M_t.set(common_settings)
     M_t.set({'modes': 's,t', 'lensing': 'yes', 'r': r, 'n_t': 0,
-         'l_max_scalars': l_max_scalars, 'l_max_tensors': l_max_tensors})
+       'l_max_scalars': l_max_scalars, 'l_max_tensors': l_max_tensors})
     M_t.compute()
 
     # Extract power spectra
@@ -468,7 +497,15 @@ with tab2:
     ax.grid(True, which='both', linestyle='--', alpha=0.5)
     ax.legend(loc='right', bbox_to_anchor=(1.4, 0.5), fontsize=12)
     st.pyplot(fig)
-    st.header("Polarization Maps")
+    st.header(r"Simulated CMB Polarization Maps")
+    st.markdown(r"""
+    This section visualizes the simulated CMB polarization maps (E and B modes) using the lensed power spectra $ C_\ell^{EE} $ and \( C_\ell^{BB} \) computed by [CLASS](http://class-code.net/). The maps are generated using the [Healpy](https://healpy.readthedocs.io/en/latest/) library.
+
+    - **E-mode Polarization**: Generated by scalar perturbations, primarily from density fluctuations.
+    - **B-mode Polarization**: Generated by tensor perturbations (primordial gravitational waves) and lensing effects.
+    - **Polarization Vectors**: Represent the direction and amplitude of polarization. You can toggle the display of arrows for clarity.
+    """)
+
     # Generate simulated CMB polarization maps (E and B modes) from the lensed power spectra
     # Use cl_lensed['ee'] and cl_lensed['bb'] for E and B modes, respectively
 
@@ -507,6 +544,9 @@ with tab2:
     # Normalize arrows for visibility
     arrow_scale = 0.04 * pol_amp / pol_amp.max()
 
+    # Toggle for displaying arrows
+    show_arrows = st.checkbox("Show Polarization Arrows", value=True)
+
     fig, axs = plt.subplots(1, 2, figsize=(16, 7), sharex=True, sharey=True)
 
     # Plot settings
@@ -518,7 +558,8 @@ with tab2:
 
     # E-mode
     im0 = axs[0].scatter(lon, lat, c=E_plot, cmap='RdBu_r', s=10, lw=0, alpha=0.85)
-    axs[0].quiver(x, y, u, v, color='k', alpha=0.7, width=0.003, scale=0.4)
+    if show_arrows:
+      axs[0].quiver(x, y, u, v, color='k', alpha=0.7, width=0.003, scale=0.4)
     axs[0].set_title('E-mode', fontsize=16)
     axs[0].set_xlabel('RA [deg]')
     axs[0].set_ylabel('Dec [deg]')
@@ -528,7 +569,8 @@ with tab2:
 
     # B-mode
     im1 = axs[1].scatter(lon, lat, c=B_plot, cmap='RdBu_r', s=10, lw=0, alpha=0.85)
-    axs[1].quiver(x, y, u, v, color='k', alpha=0.7, width=0.003, scale=0.4)
+    if show_arrows:
+      axs[1].quiver(x, y, u, v, color='k', alpha=0.7, width=0.003, scale=0.4)
     axs[1].set_title('B-mode', fontsize=16)
     axs[1].set_xlabel('RA [deg]')
     axs[1].set_xlim([-180, 180])
@@ -541,18 +583,71 @@ with tab2:
 # galaxy clustering
 with tab3:
     st.header("Matter Power Spectrum")
+    st.markdown(r"""
+    ### Matter Power Spectrum
+    This plot corresponds to Figure 8.14 in [Modern Cosmology](https://www.amazon.co.uk/Modern-Cosmology-Scott-Dodelson/dp/0128159480).
+    It shows the matter power spectrum $ P(k) $ as a function of wavenumber $k$, with options to include:
+    - **Halofit**: A semi-analytical model for the non-linear evolution of the matter power spectrum.
+    - **One-Loop and Two-Loop Corrections**: Approximations to higher-order corrections in the matter power spectrum using perturbation theory.
+
+    #### Approximations:
+    - **One-Loop Correction**: Approximated as $ P(k) \times (1 + A \log(1 + k/0.2)) $, where $ A $ is a small fudge factor (set to 0.1).
+    - **Two-Loop Correction**: Approximated as $ P(k) \times (1 + A \log(1 + k/0.2) + B (\log(1 + k/0.2))^2) $, where $ B $ is another small fudge factor (set to 0.01).
+    - These approximations are illustrative and not derived from full Standard Perturbation Theory (SPT).
+
+    #### Halofit:
+    - **[Halofit](https://arxiv.org/abs/1208.2701)**: A model for the non-linear matter power spectrum that incorporates the effects of halo formation and evolution.
+    - It is based on the idea that the matter power spectrum can be approximated by a sum of contributions from different halo masses.
+    - It provides a more accurate prediction of $ P(k) $ at small scales compared to linear theory.
+    """)
+
+    # Slider for redshift
+    redshift = st.slider("Redshift (z)", 0.0, 5.0, 0.0, step=0.1)
+
+    # Toggle for Halofit
+    use_halofit = st.checkbox("Enable Halofit", value=True)
+  
+    # Toggle for One-Loop and Two-Loop Corrections
+    show_one_loop = st.checkbox("Show One-Loop Correction", value=False)
+    show_two_loop = st.checkbox("Show Two-Loop Correction", value=False)
+
+    # Define k range and compute linear matter power spectrum
     k = np.logspace(-4, 1, 1000)
-    pk = [cosmo.pk(ki, 0.0) for ki in k]
+    pk_linear = [cosmo.pk(ki, redshift) for ki in k]
+
+    # Compute non-linear (Halofit) matter power spectrum if enabled
+    if use_halofit:
+        halofit = Class()
+        halofit.set(common_settings)
+        halofit.set({'non linear': 'halofit'})
+        halofit.compute()
+        pk_halofit = [halofit.pk(ki, redshift) for ki in k]
+
+    # Define functions for one-loop and two-loop corrections
+    def one_loop_pk(k, pk, A=0.1):
+        return pk * (1 + A * np.log(1 + k / 0.2))
+
+    def two_loop_pk(k, pk, B=0.01):
+        return pk * (1 + 0.1 * np.log(1 + k / 0.2) + B * (np.log(1 + k / 0.2))**2)
+
+    # Apply one-loop and two-loop corrections if enabled
+    pk_one_loop = one_loop_pk(k, np.array(pk_linear)) if show_one_loop else None
+    pk_two_loop = two_loop_pk(k, np.array(pk_linear)) if show_two_loop else None
+
+    # Plot the matter power spectrum
     fig, ax = plt.subplots()
-    ax.loglog(k, pk, label="z=0")
+    ax.loglog(k, pk_linear, label="Linear (z={:.1f})".format(redshift), color='blue')
+    if use_halofit:
+        ax.loglog(k, pk_halofit, label="Halofit (z={:.1f})".format(redshift), linestyle='--', color='red')
+    if show_one_loop:
+        ax.loglog(k, pk_one_loop, label="One-Loop Correction (approx)", linestyle='-.', color='orange')
+    if show_two_loop:
+        ax.loglog(k, pk_two_loop, label="Two-Loop Correction (approx)", linestyle=':', color='green')
     ax.set_xlabel(r"$k \, [h/\mathrm{Mpc}]$")
     ax.set_ylabel(r"$P(k) \, [\mathrm{Mpc}^3/h^3]$")
-    ax.grid()
+    ax.grid(True, which="both", linestyle="--", alpha=0.5)
     ax.legend()
     st.pyplot(fig)
-    st.header("BAO Highlight")
-    st.header("Galaxy Clustering Correlation Function")
-    st.header("Redshift Space Distortions")
 
 # cosmic shear
 with tab4:

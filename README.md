@@ -13,7 +13,7 @@ This repository contains Jupyter Notebooks and a Streamlit app for visualizing c
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/your-username/lunch_seminar.git
+    git clone https://github.com/Rintaro0406/lunch_seminar_2025.git
     cd lunch_seminar
     ```
 
@@ -29,7 +29,7 @@ This repository contains Jupyter Notebooks and a Streamlit app for visualizing c
     ```
 
 4. **Install `classy`**:
-    Install `classy`(Boltzmann Solver CLASS](http://class-code.net/)) separately to ensure all prerequisites are met:
+    Install `classy` separately to ensure all prerequisites are met([documentation](https://github.com/lesgourg/class_public.git)):
     ```bash
     pip install classy
     ```
