@@ -7,6 +7,16 @@ from classy import Class
 import qrcode
 from io import BytesIO
 from matplotlib.patches import FancyArrowPatch
+from scipy import interpolate
+from scipy import integrate
+import camb
+import glass
+from cosmology import Cosmology
+import matplotlib.ticker as ticker
+import camb
+from cosmology import Cosmology
+import glass
+import glass.ext.camb
 
 # Set up the Streamlit page
 st.set_page_config(page_title="Cosmolunch Appetizer", layout="wide")
@@ -29,14 +39,18 @@ st.markdown("""
 st.sidebar.header("Cosmological Parameters")
 st.sidebar.markdown("Fit weird curves by hand")
 h = st.sidebar.slider(r"$h$ Hubble Parameter", 0.5, 0.9, 0.6736, step=0.001)
-Omega_m = st.sidebar.slider(r"$\Omega_m$ Matter Density", 0.1, 0.5, 0.315, step=0.001)
-Omega_b = st.sidebar.slider(r"$\Omega_b$ Baryon Density", 0.01, 0.1, 0.049, step=0.001)
-Omega_r = st.sidebar.slider(r"$\Omega_r$ Radiation Density", 0.0, 0.0002, 9.2e-5, step=1e-6, format="%.6f")
-sigma8 = st.sidebar.slider(r"$\sigma_8$ Amplitude of Matter Fluctuations", 0.5, 1.2, 0.811, step=0.001)
+Omega_m = st.sidebar.slider(
+    r"$\Omega_m$ Matter Density", 0.1, 0.5, 0.315, step=0.001)
+Omega_b = st.sidebar.slider(
+    r"$\Omega_b$ Baryon Density", 0.01, 0.1, 0.049, step=0.001)
+Omega_r = st.sidebar.slider(
+    r"$\Omega_r$ Radiation Density", 0.0, 0.0002, 9.2e-5, step=1e-6, format="%.6f")
+sigma8 = st.sidebar.slider(
+    r"$\sigma_8$ Amplitude of Matter Fluctuations", 0.5, 1.2, 0.811, step=0.001)
 n_s = st.sidebar.slider(r"$n_s$ Spectral Index", 0.9, 1.1, 0.9649, step=0.001)
 
 with left_col:
-    
+
     st.markdown("""
     ### 🧑‍🍳 The Recipe of the Universe
     - **Baseline Recipes**: A flat LambdaCDM cosmology (but feel free to add a pinch of massive neutrinos 🥑 or a dash of dynamical dark energy 🍺 if you're allergic to cosmological constant).  
@@ -77,7 +91,6 @@ with right_col:
     """)
 
 
-
 # Generate QR Code for the app
 st.sidebar.header("QR Code")
 app_url = "http://localhost:8501"  # Future I will deploy this app on the server
@@ -87,7 +100,8 @@ qr.make(fit=True)
 img = qr.make_image(fill="black", back_color="white")
 buffer = BytesIO()
 img.save(buffer, format="PNG")
-st.sidebar.image(buffer.getvalue(), caption="Scan to Open App", use_column_width=True)
+st.sidebar.image(buffer.getvalue(), caption="Scan to Open App",
+                 use_column_width=True)
 
 # Initialize CLASS
 cosmo = Class()
@@ -108,7 +122,8 @@ cosmo.set(common_settings)
 cosmo.compute()
 
 # Tabs for different visualizations
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Basics", "CMB", "Galaxy Clustering", "Cosmic Shear", "Supernovae"])
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["Basics", "CMB", "Galaxy Clustering", "Weak Lensing"])
 
 # basics
 with tab1:
@@ -152,13 +167,18 @@ The blue curve is the theoretical model using [CLASS](http://class-code.net/), w
 
     # Plot H(z)/(1+z)
     fig, ax = plt.subplots(figsize=(7, 5))
-    ax.plot(z, Hz_kmsMpc / (1 + z), color='blue', lw=2, label='Calculated using CLASS')
+    ax.plot(z, Hz_kmsMpc / (1 + z), color='blue',
+            lw=2, label='Calculated using CLASS')
 
     if show_obs_data:
-        ax.errorbar(Riess_2019[0], Riess_2019[1] / (1 + Riess_2019[0]), yerr=Riess_2019[2] / (1 + Riess_2019[0]), fmt='o', color='red', label='Riess et al. 2019')
-        ax.errorbar(BOSS_DR12[:, 0], BOSS_DR12[:, 1] / (1 + BOSS_DR12[:, 0]), yerr=BOSS_DR12[:, 2] / (1 + BOSS_DR12[:, 0]), fmt='o', color='black', label='BOSS DR12')
-        ax.errorbar(DR14_quasars[0], DR14_quasars[1] / (1 + DR14_quasars[0]), yerr=DR14_quasars[2] / (1 + DR14_quasars[0]), fmt='o', color='green', label='DR14 quasars')
-        ax.errorbar(DR14_Ly_alpha[0], DR14_Ly_alpha[1] / (1 + DR14_Ly_alpha[0]), yerr=DR14_Ly_alpha[2] / (1 + DR14_Ly_alpha[0]), fmt='o', color='orange', label='DR14 Ly-alpha')
+        ax.errorbar(Riess_2019[0], Riess_2019[1] / (1 + Riess_2019[0]), yerr=Riess_2019[2] / (
+            1 + Riess_2019[0]), fmt='o', color='red', label='Riess et al. 2019')
+        ax.errorbar(BOSS_DR12[:, 0], BOSS_DR12[:, 1] / (1 + BOSS_DR12[:, 0]), yerr=BOSS_DR12[:,
+                    2] / (1 + BOSS_DR12[:, 0]), fmt='o', color='black', label='BOSS DR12')
+        ax.errorbar(DR14_quasars[0], DR14_quasars[1] / (1 + DR14_quasars[0]), yerr=DR14_quasars[2] / (
+            1 + DR14_quasars[0]), fmt='o', color='green', label='DR14 quasars')
+        ax.errorbar(DR14_Ly_alpha[0], DR14_Ly_alpha[1] / (1 + DR14_Ly_alpha[0]), yerr=DR14_Ly_alpha[2] / (
+            1 + DR14_Ly_alpha[0]), fmt='o', color='orange', label='DR14 Ly-alpha')
 
     ax.legend(fontsize=12, loc='upper right')
     ax.set_xlabel('Redshift $z$', fontsize=16)
@@ -166,8 +186,10 @@ The blue curve is the theoretical model using [CLASS](http://class-code.net/), w
     ax.set_yscale('log')
     ax.grid(True, which='both', linestyle='--', alpha=0.4)
     ax.minorticks_on()
-    ax.tick_params(axis='both', which='major', labelsize=13, length=7, width=1.5, direction='in', top=True, right=True)
-    ax.tick_params(axis='both', which='minor', labelsize=11, length=4, width=1, direction='in', top=True, right=True)
+    ax.tick_params(axis='both', which='major', labelsize=13,
+                   length=7, width=1.5, direction='in', top=True, right=True)
+    ax.tick_params(axis='both', which='minor', labelsize=11,
+                   length=4, width=1, direction='in', top=True, right=True)
     st.pyplot(fig)
     st.header("Distance Measures")
     st.markdown(r"""
@@ -186,22 +208,24 @@ This plot shows the comoving distance $\chi(z)$, angular diameter distance $d_A(
   $$d_L(z) = \chi(z)(1+z)$$
 """)
     # Redshift range (reuse z)
-    chi = np.array([cosmo.angular_distance(z_i) * (1 + z_i) for z_i in z])  # comoving distance, Mpc
+    chi = np.array([cosmo.angular_distance(z_i) * (1 + z_i)
+                   for z_i in z])  # comoving distance, Mpc
     d_A = chi / (1 + z)  # angular diameter distance, Mpc
     d_L = chi * (1 + z)  # luminosity distance, Mpc
 
     # Plot distance measures
     fig, ax = plt.subplots(figsize=(7, 5))
     ax.plot(z, chi, label=r'$\chi(z)$ (Comoving Distance)', color='blue', lw=2)
-    ax.plot(z, d_A, label=r'$d_A(z)$ (Angular Diameter Distance)', color='green', lw=2, linestyle='--')
-    ax.plot(z, d_L, label=r'$d_L(z)$ (Luminosity Distance)', color='red', lw=2, linestyle='-.')
+    ax.plot(z, d_A, label=r'$d_A(z)$ (Angular Diameter Distance)',
+            color='green', lw=2, linestyle='--')
+    ax.plot(z, d_L, label=r'$d_L(z)$ (Luminosity Distance)',
+            color='red', lw=2, linestyle='-.')
     ax.set_xlabel('Redshift $z$', fontsize=15)
     ax.set_ylabel(r'Distance [Mpc]', fontsize=15)
     ax.set_yscale('log')
     ax.legend(fontsize=13, loc='upper left')
     ax.grid(True, which='both', linestyle='--', alpha=0.5)
     st.pyplot(fig)
-
 
     st.header("Density Parameter Evolution")
     st.markdown(r"""
@@ -234,22 +258,27 @@ where $a_{\rm eq}$ is the scale factor at matter-radiation equality, and $a_{\La
     a_eq = Omega_r / Omega_m
     a_lambda = (Omega_m / omega_lambda)**(1/3)
 
-    shows_equality = st.checkbox("Show Equality Lines (Density Evolution)", value=False, key="density_equality")
+    shows_equality = st.checkbox(
+        "Show Equality Lines (Density Evolution)", value=False, key="density_equality")
     fig, ax = plt.subplots(figsize=(7, 5))
-    ax.plot(a_plot, rho_r, label=r'$\Omega_r(a)$ (Radiation)', color='orange', lw=2)
+    ax.plot(a_plot, rho_r, label=r'$\Omega_r(a)$ (Radiation)',
+            color='orange', lw=2)
     ax.plot(a_plot, rho_m, label=r'$\Omega_m(a)$ (Matter)', color='blue', lw=2)
-    ax.plot(a_plot, rho_L, label=r'$\Omega_\Lambda(a)$ (Dark Energy)', color='green', lw=2)
+    ax.plot(a_plot, rho_L, label=r'$\Omega_\Lambda(a)$ (Dark Energy)',
+            color='green', lw=2)
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlabel('Scale factor $a$', fontsize=15)
     ax.set_ylabel(r'$\rho_s(t)$', fontsize=15)
     if shows_equality:
-        ax.axvline(a_eq, color='red', linestyle='--', label=r'$a_{\rm eq}$ (Matter-Radiation Equality)')
-        ax.axvline(a_lambda, color='purple', linestyle='--', label=r'$a_{\Lambda}$ ($\Lambda$-Matter Equality)')
+        ax.axvline(a_eq, color='red', linestyle='--',
+                   label=r'$a_{\rm eq}$ (Matter-Radiation Equality)')
+        ax.axvline(a_lambda, color='purple', linestyle='--',
+                   label=r'$a_{\Lambda}$ ($\Lambda$-Matter Equality)')
     ax.legend(fontsize=12)
     ax.grid(True, which='both', linestyle='--', alpha=0.5)
     st.pyplot(fig)
-   
+
     st.header("Scale Factor Evolution")
     st.markdown(r"""
 ### This plot corresponds to figure 1.2 in [Modern Cosmology](https://www.amazon.co.uk/Modern-Cosmology-Scott-Dodelson/dp/0128159480)
@@ -271,7 +300,8 @@ $$a(t) \propto t^{1/2}$$
 $$a(t) \propto e^{H t}$$""")
     # Constants
     H0 = 100 * h  # Hubble constant in km/s/Mpc
-    H0_si = H0 * 1e3 / (3.086e22)  # Hubble constant in s^-1 (Mpc to m conversion)
+    # Hubble constant in s^-1 (Mpc to m conversion)
+    H0_si = H0 * 1e3 / (3.086e22)
 
     # Compute E(a) = H(a)/H0
     E = np.sqrt(Omega_r / a_plot**4 + Omega_m / a_plot**3 + omega_lambda)
@@ -280,28 +310,32 @@ $$a(t) \propto e^{H t}$$""")
     # dt/da = 1 / [a H(a)] ⇒ t(a) = ∫ da / [a H0 E(a)]
     da = np.diff(a_plot)
     integrand = 1.0 / (a_plot * H0_si * E)
-    t = np.concatenate(([0], np.cumsum(0.5 * (integrand[:-1] + integrand[1:]) * da)))
+    t = np.concatenate(
+        ([0], np.cumsum(0.5 * (integrand[:-1] + integrand[1:]) * da)))
 
     # Convert to years
     seconds_per_year = 3600 * 24 * 365
     t_years = t / seconds_per_year
 
-
     # Use a unique key for the checkbox to avoid conflicts with the previous one
-    shows_equality_2 = st.checkbox("Show Equality Lines (Scale Factor Evolution)", value=False, key="scale_factor_equality")
-    
+    shows_equality_2 = st.checkbox(
+        "Show Equality Lines (Scale Factor Evolution)", value=False, key="scale_factor_equality")
+
     # Plot a(t) vs t
     fig, ax = plt.subplots(figsize=(7, 5))
-    ax.loglog(t_years, a_plot, color='C0', lw=2, label='Scale Factor Evolution')
+    ax.loglog(t_years, a_plot, color='C0', lw=2,
+              label='Scale Factor Evolution')
     if shows_equality_2:
-        ax.axhline(a_eq, color='red', linestyle='--', label=r'Matter-Radiation Equality')
-        ax.axhline(a_lambda, color='purple', linestyle='--', label=r'$\Lambda$-Matter Equality')
+        ax.axhline(a_eq, color='red', linestyle='--',
+                   label=r'Matter-Radiation Equality')
+        ax.axhline(a_lambda, color='purple', linestyle='--',
+                   label=r'$\Lambda$-Matter Equality')
     ax.set_xlabel('Cosmic time $t$ [yr]', fontsize=14)
     ax.set_ylabel('Scale factor $a(t)$', fontsize=14)
     ax.legend(fontsize=12)
     ax.grid(which='both', linestyle='--', alpha=0.5)
     st.pyplot(fig)
-    
+
 
 # cmb
 with tab2:
@@ -326,7 +360,8 @@ with tab2:
 
     # Load Planck 2018 TT data
     show_obs_data = st.checkbox("Show Planck 2018 TT Data", value=False)
-    planck_data = np.loadtxt('/Users/r.kanaki/code/lunch_seminar/Data/COM_PowerSpect_CMB-TT-full_R3.01.txt')
+    planck_data = np.loadtxt(
+        '/Users/r.kanaki/code/lunch_seminar/Data/COM_PowerSpect_CMB-TT-full_R3.01.txt')
     ell_data = planck_data[:, 0]
     cl_data = planck_data[:, 1]
     cl_err_plus = planck_data[:, 2]
@@ -349,39 +384,45 @@ with tab2:
     M = Class()
     # Compute contributions
     if show_contributions:
-      M.empty()
-      M.set(common_settings)
-      M.set({'temperature contributions': 'tsw'})
-      M.compute()
-      cl_TSW = M.raw_cl(lmax)
-      M.empty()
-      M.set(common_settings)
-      M.set({'temperature contributions': 'eisw'})
-      M.compute()
-      cl_eISW = M.raw_cl(lmax)
-      M.empty()
-      M.set(common_settings)
-      M.set({'temperature contributions': 'lisw'})
-      M.compute()
-      cl_lISW = M.raw_cl(lmax)
-      M.empty()
-      M.set(common_settings)
-      M.set({'temperature contributions': 'dop'})
-      M.compute()
-      cl_Doppler = M.raw_cl(lmax)
+        M.empty()
+        M.set(common_settings)
+        M.set({'temperature contributions': 'tsw'})
+        M.compute()
+        cl_TSW = M.raw_cl(lmax)
+        M.empty()
+        M.set(common_settings)
+        M.set({'temperature contributions': 'eisw'})
+        M.compute()
+        cl_eISW = M.raw_cl(lmax)
+        M.empty()
+        M.set(common_settings)
+        M.set({'temperature contributions': 'lisw'})
+        M.compute()
+        cl_lISW = M.raw_cl(lmax)
+        M.empty()
+        M.set(common_settings)
+        M.set({'temperature contributions': 'dop'})
+        M.compute()
+        cl_Doppler = M.raw_cl(lmax)
 
     # Plotting
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(ells, cl_tt * ells * (ells + 1) / (2 * np.pi), lw=1.8, color='blue', label='CLASS prediction')
+    ax.plot(ells, cl_tt * ells * (ells + 1) / (2 * np.pi),
+            lw=1.8, color='blue', label='CLASS prediction')
 
     if show_contributions:
-      ax.plot(ells, cl_TSW['tt'][2:] * ells * (ells + 1) * T0**2 / (2 * np.pi), lw=1.8, color='black', label='TSW')
-      ax.plot(ells, cl_eISW['tt'][2:] * ells * (ells + 1) * T0**2 / (2 * np.pi), lw=1.8, color='green', label='eISW')
-      ax.plot(ells, cl_lISW['tt'][2:] * ells * (ells + 1) * T0**2 / (2 * np.pi), lw=1.8, color='orange', label='lISW')
-      ax.plot(ells, cl_Doppler['tt'][2:] * ells * (ells + 1) * T0**2 / (2 * np.pi), lw=1.8, color='purple', label='Doppler')
+        ax.plot(ells, cl_TSW['tt'][2:] * ells * (ells + 1) * T0 **
+                2 / (2 * np.pi), lw=1.8, color='black', label='TSW')
+        ax.plot(ells, cl_eISW['tt'][2:] * ells * (ells + 1) * T0 **
+                2 / (2 * np.pi), lw=1.8, color='green', label='eISW')
+        ax.plot(ells, cl_lISW['tt'][2:] * ells * (ells + 1) * T0 **
+                2 / (2 * np.pi), lw=1.8, color='orange', label='lISW')
+        ax.plot(ells, cl_Doppler['tt'][2:] * ells * (ells + 1) * T0 **
+                2 / (2 * np.pi), lw=1.8, color='purple', label='Doppler')
 
     if show_obs_data:
-      ax.errorbar(ell_sampled, cl_sampled, yerr=[cl_err_plus_sampled, cl_err_minus_sampled], fmt='o', markersize=4, capsize=2, color='red', label='Planck 2018 TT')
+        ax.errorbar(ell_sampled, cl_sampled, yerr=[
+                    cl_err_plus_sampled, cl_err_minus_sampled], fmt='o', markersize=4, capsize=2, color='red', label='Planck 2018 TT')
 
     ax.set_xlabel(r'Multipole $\ell$', fontsize=16)
     ax.set_ylabel(r'$\ell(\ell+1)C_\ell^{TT}/2\pi\ [\mu K^2]$', fontsize=16)
@@ -403,40 +444,43 @@ with tab2:
     - **CMB Map**: The simulated CMB map is displayed in a Mollweide projection, with the color scale representing the temperature anisotropies in microkelvins (μK).
     """)
     # Slider for Healpix resolution
-    nside = st.select_slider("Healpix Resolution (nside)", options=[32, 64, 128, 256, 512, 1024], value=1024)
+    nside = st.select_slider("Healpix Resolution (nside)", options=[
+                             32, 64, 128, 256, 512, 1024], value=1024)
     # Generate a simulated CMB map using the CLASS C_l^TT
-    cmb_map = hp.synfast(cl_tt, nside=nside, lmax=lmax, new=True, verbose=False)
+    cmb_map = hp.synfast(cl_tt, nside=nside, lmax=lmax,
+                         new=True, verbose=False)
 
     # Button to toggle mask application
     st.markdown("""
                 ‼️ The mask is only applied to the CMB map, not the power spectrum.
     """)
     apply_mask = st.checkbox("Apply Planck 2018 UT78 Mask", value=False)
-    
 
     if apply_mask:
-      # === Load Planck 2018 UT78 Mask ===
-      mask_path = "/Users/r.kanaki/code/lunch_seminar/Data/COM_Mask_CMB-common-Mask-int_2048_R3.00.fits"
-      mask_2048 = hp.read_map(mask_path, verbose=False)
+        # === Load Planck 2018 UT78 Mask ===
+        mask_path = "/Users/r.kanaki/code/lunch_seminar/Data/COM_Mask_CMB-common-Mask-int_2048_R3.00.fits"
+        mask_2048 = hp.read_map(mask_path, verbose=False)
 
-      # Downgrade mask to match the map nside
-      mask = hp.ud_grade(mask_2048, nside_out=nside)
-      mask = np.where(mask > 0.9, 1, 0)  # Binarize mask
+        # Downgrade mask to match the map nside
+        mask = hp.ud_grade(mask_2048, nside_out=nside)
+        mask = np.where(mask > 0.9, 1, 0)  # Binarize mask
 
-      # === Apply mask ===
-      cmb_map_masked = cmb_map * mask
-      # Set masked pixels to hp.UNSEEN so they appear as background in the plot
-      cmb_map_masked[mask == 0] = hp.UNSEEN
+        # === Apply mask ===
+        cmb_map_masked = cmb_map * mask
+        # Set masked pixels to hp.UNSEEN so they appear as background in the plot
+        cmb_map_masked[mask == 0] = hp.UNSEEN
 
-      # Plot the masked CMB map
-      fig = plt.figure(figsize=(8, 6))
-      hp.mollview(cmb_map_masked, title='CMB Map with Planck 2018 UT78 Mask', unit='μK', cmap='jet', fig=fig.number)
-      hp.graticule()
+        # Plot the masked CMB map
+        fig = plt.figure(figsize=(8, 6))
+        hp.mollview(cmb_map_masked, title='CMB Map with Planck 2018 UT78 Mask',
+                    unit='μK', cmap='jet', fig=fig.number)
+        hp.graticule()
     else:
-      # Plot the unmasked CMB map
-      fig = plt.figure(figsize=(8, 6))
-      hp.mollview(cmb_map, title='Simulated CMB map from CLASS $C_\ell^{TT}$', unit='μK', cmap='jet', fig=fig.number)
-      hp.graticule()
+        # Plot the unmasked CMB map
+        fig = plt.figure(figsize=(8, 6))
+        hp.mollview(
+            cmb_map, title='Simulated CMB map from CLASS $C_\ell^{TT}$', unit='μK', cmap='jet', fig=fig.number)
+        hp.graticule()
 
     st.pyplot(fig)
 
@@ -468,7 +512,7 @@ with tab2:
     M_t = Class()
     M_t.set(common_settings)
     M_t.set({'modes': 's,t', 'lensing': 'yes', 'r': r, 'n_t': 0,
-       'l_max_scalars': l_max_scalars, 'l_max_tensors': l_max_tensors})
+             'l_max_scalars': l_max_scalars, 'l_max_tensors': l_max_tensors})
     M_t.compute()
 
     # Extract power spectra
@@ -488,101 +532,114 @@ with tab2:
     ax.loglog(ell, factor * cls['ee'], 'b-', label=r'$\mathrm{EE(s)}$')
     ax.loglog(ellt, factort * clt['ee'], 'b:', label=r'$\mathrm{EE(t)}$')
     ax.loglog(ellt, factort * clt['bb'], 'g:', label=r'$\mathrm{BB(t)}$')
-    ax.loglog(ell, factor * (cl_lensed['bb'] - clt['bb']), 'g-', label=r'$\mathrm{BB(lensing)}$')
+    ax.loglog(ell, factor * (cl_lensed['bb'] - clt['bb']),
+              'g-', label=r'$\mathrm{BB(lensing)}$')
 
     ax.set_xlim([2, l_max_scalars])
     ax.set_ylim([1.e-8, 10])
     ax.set_xlabel(r"$\ell$", fontsize=16)
-    ax.set_ylabel(r"$\ell (\ell+1) C_\ell^{XY} / 2 \pi \,\,\, [\times 10^{10}]$", fontsize=16)
+    ax.set_ylabel(
+        r"$\ell (\ell+1) C_\ell^{XY} / 2 \pi \,\,\, [\times 10^{10}]$", fontsize=16)
     ax.grid(True, which='both', linestyle='--', alpha=0.5)
     ax.legend(loc='right', bbox_to_anchor=(1.4, 0.5), fontsize=12)
     st.pyplot(fig)
+
     st.header(r"Simulated CMB Polarization Maps")
     st.markdown(r"""
-    This section visualizes the simulated CMB polarization maps (E and B modes) using the lensed power spectra $ C_\ell^{EE} $ and \( C_\ell^{BB} \) computed by [CLASS](http://class-code.net/). The maps are generated using the [Healpy](https://healpy.readthedocs.io/en/latest/) library.
+    This section visualizes the simulated CMB polarization maps (E and B modes) using the lensed power spectra $ C_\ell^{EE} $ and \( C_\ell^{BB} \) computed by CLASS. Generating these maps can be slow; enable the option below to compute them on demand.
 
     - **E-mode Polarization**: Generated by scalar perturbations, primarily from density fluctuations.
     - **B-mode Polarization**: Generated by tensor perturbations (primordial gravitational waves) and lensing effects.
     - **Polarization Vectors**: Represent the direction and amplitude of polarization. You can toggle the display of arrows for clarity.
     """)
 
-    # Generate simulated CMB polarization maps (E and B modes) from the lensed power spectra
-    # Use cl_lensed['ee'] and cl_lensed['bb'] for E and B modes, respectively
+    compute_pol_maps = st.checkbox(
+        "Generate polarization maps (heavy) — compute on demand", value=False)
+    if compute_pol_maps:
+        st.info("Computing polarization maps — this may take some time.")
+        # Prepare the input power spectra for synfast: [TT, EE, BB, TE]
+        cl_synfast = [cl_lensed['tt'], cl_lensed['ee'],
+                      cl_lensed['bb'], cl_lensed['te']]
 
-    # Prepare the input power spectra for synfast: [TT, EE, BB, TE]
-    # TT is not needed for pure polarization, but synfast expects a 4-list
-    cl_synfast = [cl_lensed['tt'], cl_lensed['ee'], cl_lensed['bb'], cl_lensed['te']]
+        # Generate Q and U maps (Stokes parameters) using healpy.synfast (pol=True)
+        cmb_maps = hp.synfast(cl_synfast, nside=nside,
+                              lmax=lmax, new=True, pol=True, verbose=False)
+        cmb_T, cmb_Q, cmb_U = cmb_maps
 
-    # Generate Q and U maps (Stokes parameters) using healpy.synfast
-    # Set pol=True to get polarization maps
-    cmb_maps = hp.synfast(cl_synfast, nside=nside, lmax=lmax, new=True, pol=True, verbose=False)
-    cmb_T, cmb_Q, cmb_U = cmb_maps  # T, Q, U maps
+        # Optionally, decompose Q/U into E/B maps using healpy
+        alm_EB = hp.map2alm([cmb_T, cmb_Q, cmb_U], pol=True, lmax=lmax)
+        cmb_E = hp.alm2map(alm_EB[1], nside=nside, lmax=lmax)
+        cmb_B = hp.alm2map(alm_EB[2], nside=nside, lmax=lmax)
 
-    # Optionally, decompose Q/U into E/B maps using healpy
-    alm_EB = hp.map2alm([cmb_T, cmb_Q, cmb_U], pol=True, lmax=lmax)
-    cmb_E = hp.alm2map(alm_EB[1], nside=nside, lmax=lmax)
-    cmb_B = hp.alm2map(alm_EB[2], nside=nside, lmax=lmax)
+        nside_plot = 32  # lower resolution for vector field visualization
+        theta, phi = hp.pix2ang(
+            nside_plot, np.arange(hp.nside2npix(nside_plot)))
 
-    nside_plot = 32  # lower resolution for vector field visualization
-    npix = hp.nside2npix(nside_plot)
-    theta, phi = hp.pix2ang(nside_plot, np.arange(npix))
+        # Downsample Q/U/E/B maps for plotting
+        Q_plot = hp.ud_grade(cmb_Q, nside_plot)
+        U_plot = hp.ud_grade(cmb_U, nside_plot)
+        E_plot = hp.ud_grade(cmb_E, nside_plot)
+        B_plot = hp.ud_grade(cmb_B, nside_plot)
 
-    # Downsample Q/U/E/B maps for plotting
-    Q_plot = hp.ud_grade(cmb_Q, nside_plot)
-    U_plot = hp.ud_grade(cmb_U, nside_plot)
-    E_plot = hp.ud_grade(cmb_E, nside_plot)
-    B_plot = hp.ud_grade(cmb_B, nside_plot)
+        # Convert spherical to Mollweide projection coordinates
+        lon = np.rad2deg(phi) - 180  # [-180, 180]
+        lat = 90 - np.rad2deg(theta)  # [-90, 90]
 
-    # Convert spherical to Mollweide projection coordinates
-    lon = np.rad2deg(phi) - 180  # [-180, 180]
-    lat = 90 - np.rad2deg(theta)  # [-90, 90]
+        # Compute polarization angles and amplitudes
+        pol_angle = 0.5 * np.arctan2(U_plot, Q_plot)
+        pol_amp = np.sqrt(Q_plot**2 + U_plot**2)
 
-    # Compute polarization angles and amplitudes
-    pol_angle = 0.5 * np.arctan2(U_plot, Q_plot)
-    pol_amp = np.sqrt(Q_plot**2 + U_plot**2)
+        # Normalize arrows for visibility
+        arrow_scale = 0.04 * pol_amp / \
+            (pol_amp.max() if pol_amp.max() != 0 else 1.0)
 
-    # Normalize arrows for visibility
-    arrow_scale = 0.04 * pol_amp / pol_amp.max()
+        # Toggle for displaying arrows
+        show_arrows = st.checkbox("Show Polarization Arrows", value=True)
 
-    # Toggle for displaying arrows
-    show_arrows = st.checkbox("Show Polarization Arrows", value=True)
+        fig, axs = plt.subplots(1, 2, figsize=(
+            16, 7), sharex=True, sharey=True)
 
-    fig, axs = plt.subplots(1, 2, figsize=(16, 7), sharex=True, sharey=True)
+        # Plot settings
+        arrow_skip = 20  # plot every Nth arrow for clarity
+        x = lon[::arrow_skip]
+        y = lat[::arrow_skip]
+        u = arrow_scale[::arrow_skip] * np.cos(pol_angle[::arrow_skip])
+        v = arrow_scale[::arrow_skip] * np.sin(pol_angle[::arrow_skip])
 
-    # Plot settings
-    arrow_skip = 20  # plot every Nth arrow for clarity
-    x = lon[::arrow_skip]
-    y = lat[::arrow_skip]
-    u = arrow_scale[::arrow_skip] * np.cos(pol_angle[::arrow_skip])
-    v = arrow_scale[::arrow_skip] * np.sin(pol_angle[::arrow_skip])
+        # E-mode
+        im0 = axs[0].scatter(lon, lat, c=E_plot,
+                             cmap='RdBu_r', s=10, lw=0, alpha=0.85)
+        if show_arrows:
+            axs[0].quiver(x, y, u, v, color='k', alpha=0.7,
+                          width=0.003, scale=0.4)
+        axs[0].set_title('E-mode', fontsize=16)
+        axs[0].set_xlabel('RA [deg]')
+        axs[0].set_ylabel('Dec [deg]')
+        axs[0].set_xlim([-180, 180])
+        axs[0].set_ylim([-90, 90])
+        fig.colorbar(im0, ax=axs[0],
+                     orientation='horizontal', pad=0.1, label='μK')
 
-    # E-mode
-    im0 = axs[0].scatter(lon, lat, c=E_plot, cmap='RdBu_r', s=10, lw=0, alpha=0.85)
-    if show_arrows:
-      axs[0].quiver(x, y, u, v, color='k', alpha=0.7, width=0.003, scale=0.4)
-    axs[0].set_title('E-mode', fontsize=16)
-    axs[0].set_xlabel('RA [deg]')
-    axs[0].set_ylabel('Dec [deg]')
-    axs[0].set_xlim([-180, 180])
-    axs[0].set_ylim([-90, 90])
-    fig.colorbar(im0, ax=axs[0], orientation='horizontal', pad=0.1, label='μK')
+        # B-mode
+        im1 = axs[1].scatter(lon, lat, c=B_plot,
+                             cmap='RdBu_r', s=10, lw=0, alpha=0.85)
+        if show_arrows:
+            axs[1].quiver(x, y, u, v, color='k', alpha=0.7,
+                          width=0.003, scale=0.4)
+        axs[1].set_title('B-mode', fontsize=16)
+        axs[1].set_xlabel('RA [deg]')
+        axs[1].set_xlim([-180, 180])
+        axs[1].set_ylim([-90, 90])
+        fig.colorbar(im1, ax=axs[1],
+                     orientation='horizontal', pad=0.1, label='μK')
 
-    # B-mode
-    im1 = axs[1].scatter(lon, lat, c=B_plot, cmap='RdBu_r', s=10, lw=0, alpha=0.85)
-    if show_arrows:
-      axs[1].quiver(x, y, u, v, color='k', alpha=0.7, width=0.003, scale=0.4)
-    axs[1].set_title('B-mode', fontsize=16)
-    axs[1].set_xlabel('RA [deg]')
-    axs[1].set_xlim([-180, 180])
-    axs[1].set_ylim([-90, 90])
-    fig.colorbar(im1, ax=axs[1], orientation='horizontal', pad=0.1, label='μK')
+        plt.tight_layout()
+        st.pyplot(fig)
 
-    plt.tight_layout()
-    st.pyplot(fig)
 
 # galaxy clustering
 with tab3:
-    st.header("Matter Power Spectrum")
+    st.header("Galaxy Clustering")
     st.markdown(r"""
     ### Matter Power Spectrum
     This plot corresponds to Figure 8.14 in [Modern Cosmology](https://www.amazon.co.uk/Modern-Cosmology-Scott-Dodelson/dp/0128159480).
@@ -606,14 +663,23 @@ with tab3:
 
     # Toggle for Halofit
     use_halofit = st.checkbox("Enable Halofit", value=True)
-  
-    # Toggle for One-Loop and Two-Loop Corrections
-    show_one_loop = st.checkbox("Show One-Loop Correction", value=False)
-    show_two_loop = st.checkbox("Show Two-Loop Correction", value=False)
 
     # Define k range and compute linear matter power spectrum
     k = np.logspace(-4, 1, 1000)
-    pk_linear = [cosmo.pk(ki, redshift) for ki in k]
+
+    def get_pk_array(k_array, z, engine=cosmo):
+        out = np.empty(len(k_array), dtype=float)
+        for i, kv in enumerate(k_array):
+            try:
+                out[i] = engine.pk(float(kv), float(z))
+            except Exception:
+                try:
+                    out[i] = engine.pk(float(kv), 0.0)
+                except Exception:
+                    out[i] = np.nan
+        return out
+
+    pk_linear = get_pk_array(k, redshift, engine=cosmo)
 
     # Compute non-linear (Halofit) matter power spectrum if enabled
     if use_halofit:
@@ -621,59 +687,253 @@ with tab3:
         halofit.set(common_settings)
         halofit.set({'non linear': 'halofit'})
         halofit.compute()
-        pk_halofit = [halofit.pk(ki, redshift) for ki in k]
-
-    # Define functions for one-loop and two-loop corrections
-    def one_loop_pk(k, pk, A=0.1):
-        return pk * (1 + A * np.log(1 + k / 0.2))
-
-    def two_loop_pk(k, pk, B=0.01):
-        return pk * (1 + 0.1 * np.log(1 + k / 0.2) + B * (np.log(1 + k / 0.2))**2)
-
-    # Apply one-loop and two-loop corrections if enabled
-    pk_one_loop = one_loop_pk(k, np.array(pk_linear)) if show_one_loop else None
-    pk_two_loop = two_loop_pk(k, np.array(pk_linear)) if show_two_loop else None
+        pk_halofit = get_pk_array(k, redshift, engine=halofit)
 
     # Plot the matter power spectrum
     fig, ax = plt.subplots()
-    ax.loglog(k, pk_linear, label="Linear (z={:.1f})".format(redshift), color='blue')
+    ax.loglog(k, pk_linear, label="Linear (z={:.1f})".format(
+        redshift), color='blue')
     if use_halofit:
-        ax.loglog(k, pk_halofit, label="Halofit (z={:.1f})".format(redshift), linestyle='--', color='red')
-    if show_one_loop:
-        ax.loglog(k, pk_one_loop, label="One-Loop Correction (approx)", linestyle='-.', color='orange')
-    if show_two_loop:
-        ax.loglog(k, pk_two_loop, label="Two-Loop Correction (approx)", linestyle=':', color='green')
+        ax.loglog(k, pk_halofit, label="Halofit (z={:.1f})".format(
+            redshift), linestyle='--', color='red')
     ax.set_xlabel(r"$k \, [h/\mathrm{Mpc}]$")
     ax.set_ylabel(r"$P(k) \, [\mathrm{Mpc}^3/h^3]$")
     ax.grid(True, which="both", linestyle="--", alpha=0.5)
     ax.legend()
     st.pyplot(fig)
+    st.header("Halo Mass Function")
+    st.markdown("""
+    Compute the halo mass function using the Sheth–Tormen fit and the linear power spectrum from CLASS.
+    The redshift is controlled by the slider above.
+    """)
+    with st.spinner("Computing halo mass function..."):
+        # prepare k and linear power from CLASS at selected redshift
+        k_hmf = np.logspace(-4, 1, 800)
+        pk_lin_hmf = get_pk_array(k_hmf, redshift, engine=cosmo)
+        pk_interp = interpolate.interp1d(np.log(k_hmf), np.log(
+            pk_lin_hmf), kind='cubic', fill_value='extrapolate')
+
+        def P_of_k(kv):
+            return np.exp(pk_interp(np.log(kv)))
+
+        # background densities
+        rho_crit = 2.775e11 * h**2  # Msun / Mpc^3
+        rho_crit_h = rho_crit / h**3
+        rho_m = Omega_m * rho_crit_h  # Msun / (Mpc/h)^3
+
+        def W_tophat(x):
+            x_arr = np.asarray(x)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                w = 3.0 * (np.sin(x_arr) - x_arr * np.cos(x_arr)) / x_arr**3
+            # Safely handle x->0 for both scalars and arrays
+            return np.where(np.isclose(x_arr, 0.0), 1.0, w)
+
+        # mass grid
+        M_vals = np.logspace(13, 16, 60)  # Msun/h
+        R_vals = (3.0 * M_vals / (4.0 * np.pi * rho_m))**(1.0/3.0)
+        # Vectorized sigma^2 computation: integrate over k for each R
+        kk = k_hmf
+        Pk_vals = P_of_k(kk)
+        KR = np.outer(kk, R_vals)  # shape (nk, nR)
+        W = W_tophat(KR)
+        integrand = (kk[:, None]**2) * Pk_vals[:, None] * W**2
+        sigma2 = np.trapz(integrand, kk, axis=0) / (2.0 * np.pi**2)
+        sigma0 = np.sqrt(sigma2)
+        lns = np.log(sigma0)
+        lnM = np.log(M_vals)
+        dlns_dlnM = np.gradient(lns, lnM)
+
+        # Sheth-Tormen
+        A = 0.3222
+        a_st = 0.707
+        p = 0.3
+        delta_c = 1.686
+
+        def sheth_tormen_dn_dM(M, sigma, dlns_dlnM_local):
+            nu = delta_c / sigma
+            f_nu = A * np.sqrt(2.0 * a_st / np.pi) * nu * np.exp(-0.5 *
+                                                                 a_st * nu**2) * (1.0 + (1.0 / (a_st * nu**2))**p)
+            dlns_dM = dlns_dlnM_local / M
+            dn_dM = (rho_m / M) * f_nu * np.abs(-dlns_dM)
+            return dn_dM
+
+        # approximate linear growth (use CLASS growth if available)
+        try:
+            D_z = cosmo.scale_independent_growth_factor_f(redshift)
+        except Exception:
+            # fallback to simple fitting formula
+            def growth_factor(z):
+                Om0 = Omega_m
+                Ol0 = 1.0 - Om0
+                Ez2 = Om0 * (1 + z)**3 + Ol0
+                Omz = Om0 * (1 + z)**3 / Ez2
+                Olz = Ol0 / Ez2
+                g = 2.5 * Omz / (Omz**(4.0/7.0) - Olz +
+                                 (1.0 + Omz/2.0) * (1.0 + Olz/70.0))
+                g0 = 2.5 * Om0 / (Om0**(4.0/7.0) - Ol0 +
+                                  (1.0 + Om0/2.0) * (1.0 + Ol0/70.0))
+                return (g / (1 + z)) / g0
+            D_z = growth_factor(redshift)
+
+        sigma_z = sigma0 * D_z
+        dn_dM = sheth_tormen_dn_dM(M_vals, sigma_z, dlns_dlnM)
+        dn_dlog10M = np.log(10) * M_vals * dn_dM
+
+    fig, ax = plt.subplots(figsize=(7, 4))
+    ax.loglog(M_vals, dn_dlog10M, color='C2', lw=2)
+    ax.set_xlabel('Mass [Msun/h]')
+    ax.set_ylabel('dn/dlog10(M) [ (h^3 / Mpc^3) ]')
+    ax.grid(which='both', ls='--', alpha=0.4)
+    st.pyplot(fig)
+
+    st.header("Cluster Counts in Mass-Redshift Bins")
+    st.markdown(
+        "Compute expected cluster counts in mass-redshift bins for the full sky.")
+    with st.spinner("Computing cluster counts..."):
+        z_edges = np.linspace(0.0, 1.0, 11)
+        z_mid = 0.5 * (z_edges[:-1] + z_edges[1:])
+        M_edges = np.logspace(13, 16, 30)
+        M_mid = 0.5 * (M_edges[:-1] + M_edges[1:])
+        dM = np.diff(M_edges)
+
+        c_kms = 299792.458
+
+        def comoving_distance(zv):
+            return (1.0 + zv) * cosmo.angular_distance(zv)
+
+        def H_of_z(zv):
+            return cosmo.Hubble(zv)
+
+        counts = np.zeros((len(z_mid), len(M_mid)))
+        for iz in range(len(z_mid)):
+            z1, z2 = z_edges[iz], z_edges[iz+1]
+            z_samples = np.linspace(z1, z2, 6)
+            dz = z_samples[1] - z_samples[0]
+            weight_z = np.ones_like(z_samples)
+            weight_z[0] = 0.5
+            weight_z[-1] = 0.5
+            for jz, zz in enumerate(z_samples):
+                # growth
+                try:
+                    D_zz = cosmo.scale_independent_growth_factor_f(zz)
+                except Exception:
+                    D_zz = D_z * (1.0 / (1.0 + zz))  # rough fallback
+                sigma_z_samples = sigma0 * D_zz
+                sig_interp = interpolate.interp1d(
+                    np.log(M_vals), sigma_z_samples, kind='cubic', fill_value='extrapolate')
+                sigma_mid = sig_interp(np.log(M_mid))
+                slope_interp = interpolate.interp1d(
+                    np.log(M_vals), dlns_dlnM, kind='cubic', fill_value='extrapolate')
+                slope_mid = slope_interp(np.log(M_mid))
+                dn_dM_mid = sheth_tormen_dn_dM(M_mid, sigma_mid, slope_mid)
+                Dc = comoving_distance(zz)
+                Hz = H_of_z(zz)
+                dV_dz = 4.0 * np.pi * Dc**2 * (c_kms / Hz)
+                counts[iz] += dn_dM_mid * dM * dV_dz * weight_z[jz] * dz
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    im = ax.pcolormesh(np.log10(M_edges), z_edges, counts,
+                       shading='auto', cmap='viridis')
+    ax.set_xlabel('log10(M [Msun/h])')
+    ax.set_ylabel('Redshift')
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.set_label('Counts per bin (full sky)')
+    st.pyplot(fig)
+
 
 # cosmic shear
 with tab4:
-    st.header("Convergence Power Spectrum")
-    st.header("Convergence Map")
-    
-    # Slider for Healpix resolution
-    nside = st.slider("Healpix Resolution (nside)", 32, 512, 128, step=32)
-    
-    # Generate a random convergence map for demonstration
-    npix = hp.nside2npix(nside)
-    convergence_map = np.random.normal(size=npix)
-    
-    # Plot the convergence map using Mollweide projection
-    fig = plt.figure(figsize=(8, 6))
-    hp.mollview(convergence_map, title="Convergence Map", fig=fig.number, unit="Convergence")
-    st.pyplot(fig)
-    st.header("Cosmic Shear Correlation Functions")
-    st.header("Cosmic Shear Maps")
+    st.header("Weak Lensing")
+    st.markdown("""
+    This panel computes a log-normal weak-lensing convergence map using GLASS+CAMB.
+    The computation is heavy — enable and click **Run GLASS simulation** to execute.
+    """)
 
-#supernovae
-with tab5:
-    st.header("Supernovae Type Ia")
-    st.header("Distance Modulus from Supernovae")
-    st.header("Supernovae Light Curves")
-    st.header("Supernovae Redshift Distribution")
+    use_glass = st.checkbox(
+        "Enable GLASS weak-lensing simulation (heavy)", value=False)
+    if use_glass:
+        st.markdown("**Simulation settings**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            nside = st.selectbox("HEALPix nside", options=[
+                                 64, 128, 256], index=1)
+            lmax = st.number_input("lmax", value=3 * nside, step=1)
+        with col2:
+            zmin = st.number_input("zmin", value=0.0, format="%.2f")
+            zmax = st.number_input("zmax", value=3.0, format="%.2f")
+            dx = st.number_input("dx [Mpc] (shell spacing)", value=200.0)
+        with col3:
+            ncorr = st.number_input("ncorr", value=3, step=1)
+            n_arcmin2 = st.number_input(
+                "n_gal / arcmin^2", value=0.3, format="%.3f")
+            nbins = st.number_input("tomographic nbins", value=10, step=1)
 
+        run_button = st.button("Run GLASS simulation")
+        if run_button:
+            with st.spinner("Running GLASS pipeline (this may take a while)..."):
+                try:
+                    # build CAMB params from sidebar cosmology
+                    pars = camb.set_params(
+                        H0=100.0 * h,
+                        omch2=(Omega_m - Omega_b) * h**2,
+                        ombh2=Omega_b * h**2,
+                        NonLinear=camb.model.NonLinear_both,
+                    )
+
+                    # cosmology helper used by glass
+                    cosmo_glass = Cosmology.from_camb(pars)
+
+                    # distance grid and windows
+                    zb = glass.distance_grid(cosmo_glass, zmin, zmax, dx=dx)
+                    shells = glass.linear_windows(zb)
+
+                    # angular power spectrum from CAMB
+                    cls = glass.ext.camb.matter_cls(pars, lmax, shells)
+                    cls = glass.discretized_cls(
+                        cls, nside=nside, lmax=lmax, ncorr=ncorr)
+
+                    # generate log-normal fields and matter
+                    fields = glass.lognormal_fields(shells)
+                    gls = glass.solve_gaussian_spectra(fields, cls)
+                    matter = glass.generate(fields, gls, nside, ncorr=ncorr)
+
+                    # build convergence
+                    convergence = glass.MultiPlaneConvergence(cosmo_glass)
+                    for i, delta_i in enumerate(matter):
+                        convergence.add_window(delta_i, shells[i])
+
+                    kappa_map = convergence.kappa
+                    gamm1_map, gamm2_map = glass.shear_from_convergence(
+                        kappa_map)
+
+                    # display maps
+                    fig = plt.figure(figsize=(10, 6))
+                    ax1 = fig.add_subplot(1, 3, 1)
+                    hp.mollview(kappa_map, title="Convergence (kappa)",
+                                fig=fig, sub=(1, 3, 1))
+                    ax2 = fig.add_subplot(1, 3, 2)
+                    hp.mollview(gamm1_map, title=r"Shear $\gamma_1$",
+                                fig=fig, sub=(1, 3, 2))
+                    ax3 = fig.add_subplot(1, 3, 3)
+                    hp.mollview(gamm2_map, title=r"Shear $\gamma_2$",
+                                fig=fig, sub=(1, 3, 3))
+                    st.pyplot(fig)
+
+                    # small power spectrum check
+                    with st.expander("Show convergence power spectrum"):
+                        sim_cls = hp.anafast(kappa_map, lmax=lmax)
+                        ell = np.arange(len(sim_cls))
+                        fig2, ax = plt.subplots(figsize=(6, 4))
+                        ax.plot(ell, sim_cls, '-k',
+                                label='Simulated kappa C_l')
+                        ax.set_yscale('log')
+                        ax.set_xscale('log')
+                        ax.set_xlabel(r'$\ell$')
+                        ax.set_ylabel(r'$C_\ell$')
+                        ax.legend()
+                        st.pyplot(fig2)
+
+                except Exception as e:
+                    st.error(f"GLASS simulation failed: {e}")
 st.markdown("---")
 st.markdown("Developed for lunch seminar by Rintaro Kanaki. © 2025")
