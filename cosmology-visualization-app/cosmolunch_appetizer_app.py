@@ -187,7 +187,6 @@ with tab1:
         👉 *Key idea:*  
         We are not at the center, **space itself is stretching**, carrying galaxies apart.
 
-        ---
         """)
         # Button to toggle observational data
         show_obs_data = st.checkbox("Show Observational Data", value=False)
@@ -286,7 +285,6 @@ with tab1:
 
         So depending on **how we measure**, we get different definitions of distance.
 
-        ---
         """)
         # Redshift range (reuse z)
         chi = np.array([cosmo.angular_distance(z_i) * (1 + z_i)
@@ -443,7 +441,6 @@ with tab1:
 
         👉 These components evolve differently as the Universe expands.
 
-        ---
         """)
         # Physical densities relative to rho_crit,0
         omega_lambda = 1.0 - Omega_m - Omega_r  # Assuming flat universe
@@ -460,21 +457,21 @@ with tab1:
             "Show Equality Lines (Density Evolution)", value=False, key="density_equality")
         fig, ax = plt.subplots(figsize=(7, 5))
         ax.plot(a_plot, rho_r, label=r'$\Omega_r(a)$ (Radiation)',
-                color='orange', lw=2)
-        ax.plot(a_plot, rho_m, label=r'$\Omega_m(a)$ (Matter)', color='blue', lw=2)
+                color='orange', lw=2, linestyle='-.')
+        ax.plot(a_plot, rho_m, label=r'$\Omega_m(a)$ (Matter)', color='green', lw=2, linestyle='-')
         ax.plot(a_plot, rho_L, label=r'$\Omega_\Lambda(a)$ (Dark Energy)',
-                color='green', lw=2)
+                color='purple', lw=2, linestyle='--')
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('Scale factor $a$', fontsize=15)
         ax.set_ylabel(r'$\rho_s(t)$', fontsize=15)
         if shows_equality:
-            ax.axvline(a_eq, color='red', linestyle='--',
+            ax.axvline(a_eq, color='red', linestyle=':',
                        label=r'$a_{\rm eq}$ (Matter-Radiation Equality)')
-            ax.axvline(a_lambda, color='purple', linestyle='--',
+            ax.axvline(a_lambda, color='blue', linestyle='--',
                        label=r'$a_{\Lambda}$ ($\Lambda$-Matter Equality)')
         ax.legend(fontsize=12)
-        ax.grid(True, which='both', linestyle='--', alpha=0.5)
+        ax.grid(True, which='both', linestyle=':', alpha=0.5)
         st.pyplot(fig)
         st.markdown("""
         ### What you see in the plot:
@@ -500,7 +497,7 @@ with tab1:
         3. Dark-energy-dominated  
 
         👉 Exercise: 
-        - How is mathematical behaviour of each components?
+        - How is mathematical behaviour of each components depending on scale factor $a$?
         - At what scale factor $a$ does **matter equal radiation**? (Hint: set $\Omega_r(a) = \Omega_m(a)$)
         """)
         show_answer = st.checkbox("Show Answer")
@@ -574,7 +571,7 @@ with tab1:
 
         - $a(t) = 1$ today  
         - $a(t) < 1$ in the past  
-        - $a(t) \to 0$ near the Big Bang  
+        - $a(t) \sim 0$ near the Big Bang  
 
         👉 *Think:* the scale factor is a “cosmic ruler” that stretches as the Universe expands.
         """)
@@ -603,12 +600,12 @@ with tab1:
 
         # Plot a(t) vs t
         fig, ax = plt.subplots(figsize=(7, 5))
-        ax.loglog(t_years, a_plot, color='C0', lw=2,
+        ax.loglog(t_years, a_plot, color='purple', lw=2,
                   label='Scale Factor Evolution')
         if shows_equality_2:
-            ax.axhline(a_eq, color='red', linestyle='--',
+            ax.axhline(a_eq, color='red', linestyle=':',
                        label=r'Matter-Radiation Equality')
-            ax.axhline(a_lambda, color='purple', linestyle='--',
+            ax.axhline(a_lambda, color='blue', linestyle=':',
                        label=r'$\Lambda$-Matter Equality')
         ax.set_xlabel('Cosmic time $t$ [yr]', fontsize=14)
         ax.set_ylabel('Scale factor $a(t)$', fontsize=14)
@@ -804,59 +801,62 @@ with tab2:
     👉 After this transition, light decoupled and has been traveling ever since.
 
     ---
-
-    ### Why is the CMB evidence for the Big Bang?
-
-    The Big Bang model predicts that the early Universe was:
-
-    - **Hot**
-
-    - **Dense**
-
-    - Filled with radiation and particles in thermal equilibrium  
-
-    As the Universe expanded, it cooled down. Eventually:
-
-    - Electrons and protons combined into neutral atoms  
-
-    - Light was able to travel freely for the first time  
-
-    👉 This moment is called **recombination**.
-
-    If this picture is correct, we should still observe this radiation today, but:
-
-    - Stretched by cosmic expansion  
-
-    - Cooled from thousands of Kelvin  
-
-    - Shifted into the **microwave** range  
-
-    👉 This is exactly what we observe as the CMB (~2.7 K).
-
-    ---
-
-    ### What you will learn in this section:
-
-    - What the early Universe looked like  
-    - Why the CMB is almost uniform, but not perfectly  
-    - How tiny fluctuations grew into galaxies and large-scale structure  
-    - How we extract cosmological information from the CMB  
-
-    ---
-
-    ### What does the CMB tell us?
-
-    Although the CMB is extremely uniform (~2.7 K), it contains tiny fluctuations:
-
-    👉 Temperature variations at the level of **one part in 100,000**
-
-    These small anisotropies encode:
-
-    - The content of the Universe (matter, dark matter, radiation)  
-    - The geometry of space  
-    - The physics of the early Universe  
-    - Evidence for cosmic inflation  
     """)
+    left_col_CMB, right_col_CMB = st.columns(2)
+    with left_col_CMB:
+        st.markdown("""
+        ### Why is the CMB evidence for the Big Bang?
+
+        The Big Bang model predicts that the early Universe was:
+
+        - **Hot**
+
+        - **Dense**
+
+        - Filled with radiation and particles in thermal equilibrium  
+
+        As the Universe expanded, it cooled down. Eventually:
+
+        - Electrons and protons combined into neutral atoms  
+
+        - Light was able to travel freely for the first time  
+
+        👉 This moment is called **recombination**.
+
+        If this picture is correct, we should still observe this radiation today, but:
+
+        - Stretched by cosmic expansion  
+
+        - Cooled from thousands of Kelvin  
+
+        - Shifted into the **microwave** range  
+
+        👉 This is exactly what we observe as the CMB (~2.7 K).
+
+        """)
+    with right_col_CMB:
+        st.markdown("""
+        ### What you will learn in this section:
+
+        - What the early Universe looked like  
+        - Why the CMB is almost uniform, but not perfectly  
+        - How tiny fluctuations grew into galaxies and large-scale structure  
+        - How we extract cosmological information from the CMB  
+
+        ### What does the CMB tell us?
+
+        Although the CMB is extremely uniform (~2.7 K), it contains tiny fluctuations:
+
+        👉 Temperature variations at the level of **one part in 100,000**
+
+        These small anisotropies encode:
+
+        - The content of the Universe (matter, dark matter, radiation)  
+        - The geometry of space  
+        - The physics of the early Universe  
+        - Evidence for cosmic inflation  
+        """)
+    st.markdown("---")
     # Get C_l^TT from CLASS (in [μK^2])
     use_CMB = st.checkbox("Calculate CMB Power Spectrum", value=False)
     if use_CMB:
@@ -943,64 +943,58 @@ with tab2:
                         cl_err_plus_sampled, cl_err_minus_sampled], fmt='o', markersize=4, capsize=2, color='red', label='Planck 2018 TT')
 
         ax.set_xlabel(r'Multipole $\ell$', fontsize=16)
-        ax.set_ylabel(
-            r'$\ell(\ell+1)C_{\ell}^{TT}/2\pi\ [\mu K^2]$', fontsize=16)
+        ax.set_ylabel(r'$\ell(\ell+1)C_{\ell}^{TT}/2\pi\ [\mu K^2]$', fontsize=16)
         ax.grid(True, which='both', ls='--', alpha=0.4)
         ax.tick_params(labelsize=14)
         ax.legend(fontsize=16, loc='upper right', frameon=False)
         ax.minorticks_on()
         plt.tight_layout()
         st.pyplot(fig)
-        st.markdown("""
-        ### What you see in the plot:
+        left_column_CMB_2, right_column_CMB_2 = st.columns(2)
+        with left_column_CMB_2:
+            st.markdown("""
+            ### What you see in the plot:
 
-        - The horizontal axis (**multipole $\ell$**) corresponds to angular scale:
-        - Small $\ell$ → large angles (large structures)  
-        - Large $\ell$ → small angles (fine details)  
+            - The horizontal axis (**multipole $\ell$**) corresponds to angular scale:
+            - Small $\ell$ → large angles (large structures)  
+            - Large $\ell$ → small angles (fine details)  
 
-        - The vertical axis shows the **strength of temperature fluctuations**
+            - The vertical axis shows the **strength of temperature fluctuations**
 
-        ---
+            ### Key physical idea: acoustic oscillations
 
-        ### Key physical idea: acoustic oscillations
+            In the early Universe:
 
-        In the early Universe:
+            - Photons and baryons formed a tightly coupled fluid  
+            - Gravity tried to pull matter inward  
+            - Radiation pressure pushed it outward  
 
-        - Photons and baryons formed a tightly coupled fluid  
-        - Gravity tried to pull matter inward  
-        - Radiation pressure pushed it outward  
+            👉 This created **sound waves (acoustic oscillations)** in the plasma.
 
-        👉 This created **sound waves (acoustic oscillations)** in the plasma.
+            """)
+        with right_column_CMB_2:
+            st.markdown("""
+            ### Why do we see peaks?
 
-        ### Why do we see peaks?
+            At recombination, these oscillations were “frozen”:
 
-        At recombination, these oscillations were “frozen”:
+            - Some regions were at **maximum compression** → peaks  
+            - Others at **maximum rarefaction** → troughs  
 
-        - Some regions were at **maximum compression** → peaks  
-        - Others at **maximum rarefaction** → troughs  
+            👉 These appear as a series of **peaks in the power spectrum**
 
-        👉 These appear as a series of **peaks in the power spectrum**
+            ### What each part tells us:
 
-        ### What each part tells us:
-
-        - **Peak positions** → geometry of the Universe  
-        - **Peak heights** → baryon density and dark matter  
-        - **Large scales (low $\ell$)** → initial conditions (inflation)  
-        - **Small scales (high $\ell$)** → diffusion and damping  
-
-        ---
-
-        ### Theory vs observation
-
-        - **Blue curve**: theoretical prediction (ΛCDM using CLASS)  
-        - **Points**: measurements from the Planck satellite  
-
-        👉 The remarkable agreement shows that the ΛCDM model describes the Universe extremely well.
-
-        ---
-        """)
+            - **Peak positions** → geometry of the Universe  
+            - **Peak heights** → baryon density and dark matter  
+            - **Large scales (low $\ell$)** → initial conditions (inflation)  
+            - **Small scales (high $\ell$)** → diffusion and damping  
+            
+            """)
         if show_contributions:
             st.markdown("""
+            ---
+
             ### Contributions (optional)
 
             If you turn this on, you can see how different physical effects combine to create the CMB signal.
@@ -1023,15 +1017,30 @@ with tab2:
             → Motion of matter creates shifts in the light  
             👉 *Like the Doppler effect of sound (e.g. a passing siren)*
 
-            ---
-
             👉 All these effects together produce the pattern you see in the CMB power spectrum.
+
             """)
         if show_obs_data:
             st.markdown("""
+
+            ###Observational Data
+
             - **[Planck 2018 TT Data](https://pla.esac.esa.int/pla/#home)**: Observational data from the Planck 2018 mission, which provides measurements of the CMB temperature anisotropies.
+
             """)
         st.markdown("""
+        ### Theory vs observation
+
+        - **Blue curve**: theoretical prediction (ΛCDM using CLASS)  
+        - **Points**: measurements from the Planck satellite  
+
+        👉 The remarkable agreement shows that the ΛCDM model describes the Universe extremely well.
+        👉 Why this angular powerspectrum is sufficient for describing CMB? What assumption or observational fact is behind?
+        """)
+        st.markdown("""
+
+        ---
+
         👉 **Experiment Idea:**
 
         1. Adjust the cosmological parameters to fit the CMB power spectrum.  
@@ -1103,40 +1112,6 @@ with tab2:
 
         st.pyplot(fig)
         st.markdown("""
-        ### What you will learn from this map:
-
-        - How the CMB looks across the whole sky  
-        - How small the fluctuations really are  
-        - How structure in today’s Universe began from tiny differences  
-
-        ---
-
-        ### What you see in the map:
-
-        - Colors represent temperature differences:
-        - **Red** → slightly hotter regions  
-        - **Blue** → slightly colder regions  
-
-        👉 These differences are extremely small:  
-        only about **±0.0001 K** around the average temperature (2.7 K)
-
-        ---
-
-        ### Key idea:
-
-        👉 These tiny fluctuations are the **seeds of all structure** in the Universe  
-        (galaxies, clusters, and large-scale structure)
-
-        ---
-
-        ### Simulation vs reality
-
-        - This map is **simulated** using the theoretical power spectrum from [CLASS](http://class-code.net/)  
-        - Real observations (e.g. Planck) look remarkably similar  
-
-        👉 This agreement is one of the strongest successes of modern cosmology
-
-        ---
 
         ### Controls:
 
@@ -1153,6 +1128,42 @@ with tab2:
 
         ---
         """)
+        left_column_CMB_3, right_column_CMB_3 = st.columns(2)
+        with left_column_CMB_3:
+            st.markdown("""
+            ### What you will learn from this map:
+
+            - How the CMB looks across the whole sky  
+            - How small the fluctuations really are  
+            - How structure in today’s Universe began from tiny differences  
+
+            ### What you see in the map:
+
+            - Colors represent temperature differences:
+            - **Red** → slightly hotter regions  
+            - **Blue** → slightly colder regions  
+
+            👉 These differences are extremely small:  
+            only about **±0.0001 K** around the average temperature (2.7 K)
+            """)
+        with right_column_CMB_3:
+            st.markdown("""
+            ### Key idea:
+
+            👉 These tiny fluctuations are the **seeds of all structure** in the Universe  
+            (galaxies, clusters, and large-scale structure)
+
+
+            ### Simulation vs reality
+
+            - This map is **simulated** using the theoretical power spectrum from [CLASS](http://class-code.net/)  
+            - Real observations (e.g. Planck) look remarkably similar  
+
+            👉 This agreement is one of the strongest successes of modern cosmology
+            👉 How do we compare this(Hint previous plot.)
+            """)
+
+        st.markdown("---")
         st.header("CMB Polarization Power Spectrum")
         st.markdown("""
         ### What is CMB polarization?
@@ -1161,7 +1172,6 @@ with tab2:
 
         👉 Polarization tells us about how light was scattered in the early Universe.
 
-        ---
         """)
         # Slider for scalar-to-tensor ratio r
         r = st.slider("Scalar-to-Tensor Ratio (r)", 0.0, 1.0, 0.1, step=0.01)
@@ -1212,60 +1222,56 @@ with tab2:
         ax.grid(True, which='both', linestyle='--', alpha=0.5)
         ax.legend(loc='right', bbox_to_anchor=(1.4, 0.5), fontsize=12)
         st.pyplot(fig)
+        left_column_CMB_4, right_column_CMB_4 = st.columns(2)
+        with left_column_CMB_4:
+            st.markdown("""
+            ### What you will learn from this plot:
+
+            - What **E-mode** and **B-mode** polarization are  
+            - How different physical processes create them  
+            - Why B-modes are linked to the very early Universe  
+            - How we search for signals from **cosmic inflation**  
+
+            ### What you see in the plot:
+
+            - Different curves show how polarization depends on angular scale  
+            - You can adjust the parameter $r$ to explore new physics  
+
+            ### Two types of polarization:
+
+            - **E-mode (gradient pattern)**  
+            → Produced by ordinary density fluctuations  
+            👉 Already well measured and understood  
+
+            - **B-mode (curl pattern)**  
+            → Much weaker and harder to detect  
+            👉 Can be produced by two effects:
+            - Gravitational lensing (distortion by matter)
+            - **Primordial gravitational waves**
+
+            """)
+        with right_column_CMB_4:
+            st.markdown("""
+            ### Why B-modes are so important
+
+            👉 Primordial B-modes would be a signal from the **very early Universe**, possibly from a period called **inflation**.
+
+            Inflation is a theory that says:
+
+            - The Universe expanded extremely rapidly just after the Big Bang  
+            - Tiny quantum fluctuations were stretched to cosmic scales  
+
+            👉 This process would generate **gravitational waves**, which leave a signature in the CMB polarization.
+
+            ### The key parameter: $r$
+
+            - $r$ measures the strength of these gravitational waves  
+            - Larger $r$ → stronger primordial B-mode signal  
+
+            👉 Try changing $r$ and see how the B-mode signal changes.
+
+            """)
         st.markdown("""
-        
-        ### What you will learn from this plot:
-
-        - What **E-mode** and **B-mode** polarization are  
-        - How different physical processes create them  
-        - Why B-modes are linked to the very early Universe  
-        - How we search for signals from **cosmic inflation**  
-
-        ---
-
-        ### What you see in the plot:
-
-        - Different curves show how polarization depends on angular scale  
-        - You can adjust the parameter $r$ to explore new physics  
-
-        ---
-
-        ### Two types of polarization:
-
-        - **E-mode (gradient pattern)**  
-        → Produced by ordinary density fluctuations  
-        👉 Already well measured and understood  
-
-        - **B-mode (curl pattern)**  
-        → Much weaker and harder to detect  
-        👉 Can be produced by two effects:
-        - Gravitational lensing (distortion by matter)
-        - **Primordial gravitational waves**
-
-        ---
-
-        ### Why B-modes are so important
-
-        👉 Primordial B-modes would be a signal from the **very early Universe**, possibly from a period called **inflation**.
-
-        Inflation is a theory that says:
-
-        - The Universe expanded extremely rapidly just after the Big Bang  
-        - Tiny quantum fluctuations were stretched to cosmic scales  
-
-        👉 This process would generate **gravitational waves**, which leave a signature in the CMB polarization.
-
-        ---
-
-        ### The key parameter: $r$
-
-        - $r$ measures the strength of these gravitational waves  
-        - Larger $r$ → stronger primordial B-mode signal  
-
-        👉 Try changing $r$ and see how the B-mode signal changes.
-
-        ---
-
         ### Open question in cosmology
 
         👉 Detecting primordial B-modes would be **direct evidence for inflation**.
@@ -1275,12 +1281,11 @@ with tab2:
 
         👉 This is one of the biggest open questions in modern cosmology.
 
-        ---
 
         👉 *Big picture:*  
         This plot connects the CMB to the **earliest moments of the Universe — far beyond what we can see directly.**
         """)
-
+        st.markdown("""---""")
         st.header(r"Simulated CMB Polarization Maps")
         st.markdown(r"""
         This section visualizes the simulated CMB polarization maps (E and B modes) using the lensed power spectra $ C_{\ell}^{EE} $ and \( C_{\ell}^{BB} \) computed by CLASS. Generating these maps can be slow; enable the option below to compute them on demand.
@@ -1383,44 +1388,42 @@ with tab2:
 
             plt.tight_layout()
             st.pyplot(fig)
-            st.markdown("""
-             ### What you will learn from these maps:
+            left_column_CMB_5, right_column_CMB_5 = st.columns(2)
+            with left_column_CMB_5:
+                st.markdown("""
+                ### What you will learn from these maps:
 
-            - How polarization varies across the sky  
-            - The difference between **E-mode** and **B-mode** patterns  
-            - How tiny signals encode information about the early Universe  
+                - How polarization varies across the sky  
+                - The difference between **E-mode** and **B-mode** patterns  
+                - How tiny signals encode information about the early Universe  
 
-            ---
+                ### What you see in the maps:
 
-            ### What you see in the maps:
+                - Colors show the **strength of the signal**  
+                - Arrows show the **direction of polarization**  
 
-            - Colors show the **strength of the signal**  
-            - Arrows show the **direction of polarization**  
+                👉 Each arrow represents how light is oriented at that point in the sky
+                """)
+            with right_column_CMB_5:
+                st.markdown("""
 
-            👉 Each arrow represents how light is oriented at that point in the sky
+                ### E-mode vs B-mode (visual intuition)
 
-            ---
+                - **E-mode (left)**  
+                → Smooth, radial or circular patterns  
+                👉 *Like ripples on water*  
 
-            ### E-mode vs B-mode (visual intuition)
+                - **B-mode (right)**  
+                → Twisting, swirling patterns  
+                👉 *Like a vortex or whirlpool*  
 
-            - **E-mode (left)**  
-            → Smooth, radial or circular patterns  
-            👉 *Like ripples on water*  
+                ### Simulation note:
 
-            - **B-mode (right)**  
-            → Twisting, swirling patterns  
-            👉 *Like a vortex or whirlpool*  
+                - These maps are **simulated** using the power spectra you selected  
+                - Real observations are much noisier and harder to measure  
 
-           ---
-
-            ### Simulation note:
-
-            - These maps are **simulated** using the power spectra you selected  
-            - Real observations are much noisier and harder to measure  
-
-            ---
-
-            """)
+                """)
+        st.markdown("---")
         st.markdown("""
         ### 📚 Further Reading & References
 
@@ -1443,7 +1446,7 @@ with tab2:
 
             👉 If you want to do everything by hand, but you need quite strong approximations.
         
-        - *[waynehu's site](https://background.uchicago.edu/) - Weyne Hu
+        - *[waynehu's site](https://background.uchicago.edu/)* - Weyne Hu
 
             👉 Great Introduction about CMB 
 
@@ -1469,12 +1472,6 @@ with tab3:
     This plot corresponds to Figure 8.14 in [Modern Cosmology](https://www.amazon.co.uk/Modern-Cosmology-Scott-Dodelson/dp/0128159480).
     It shows the matter power spectrum $ P(k) $ as a function of wavenumber $k$, with options to include:
     - **Halofit**: A semi-analytical model for the non-linear evolution of the matter power spectrum.
-    - **One-Loop and Two-Loop Corrections**: Approximations to higher-order corrections in the matter power spectrum using perturbation theory.
-
-    #### Approximations:
-    - **One-Loop Correction**: Approximated as $ P(k) \times (1 + A \log(1 + k/0.2)) $, where $ A $ is a small fudge factor (set to 0.1).
-    - **Two-Loop Correction**: Approximated as $ P(k) \times (1 + A \log(1 + k/0.2) + B (\log(1 + k/0.2))^2) $, where $ B $ is another small fudge factor (set to 0.01).
-    - These approximations are illustrative and not derived from full Standard Perturbation Theory (SPT).
 
     #### Halofit:
     - **[Halofit](https://arxiv.org/abs/1208.2701)**: A model for the non-linear matter power spectrum that incorporates the effects of halo formation and evolution.
